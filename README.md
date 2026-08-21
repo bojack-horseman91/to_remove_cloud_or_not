@@ -1,44 +1,47 @@
 # To Remove or Not to Remove Clouds: Multi-View Overcast Flood Mapping
 
-This repository contains the official implementation, experimental notebooks, and ablation evaluations for our paper on overcast water body segmentation using Synthetic Aperture Radar (SAR) and Synthetic Normalized Difference Water Index (NDWI) proxies.
+This repository contains the official code, experimental workflows, and evaluation notebooks for our study on overcast water body segmentation using Synthetic Aperture Radar (SAR) and Synthetic Normalized Difference Water Index (NDWI) proxies.
 
 ---
 
 ## 📂 Repository Structure & Notebook Overview
 
-The core experiments are organized across six primary Jupyter notebooks, categorized by cross-validation strategy, model capacity, and specific ablation studies:
+The experiments are organized across six primary Jupyter notebooks, categorized by cross-validation scheme, input feature configurations (including Principal Component Analysis), and specific ablation studies:
 
 | Notebook File | Description & Purpose |
 | :--- | :--- |
-| **`event-stratified.ipynb`** | Implements the primary baseline and multi-view evaluation under an **Event-Stratified Cross-Validation** split (testing generalization across completely unseen flood events). Evaluates S1 Only, Synthetic NDWI Only, and Combined frameworks. |
-| **`mixed_events.ipynb`** | Evaluates performance under a **Mixed-Events Cross-Validation** framework (random/spatial tile splits across all flood regions) to establish comparative performance metrics against event-stratified setups. |
-| **`mixed_events_testing_effect_of_R2_score.ipynb`** | Performs a quantitative analysis testing the relationship between intermediate regression translation quality ($R^2$ score of synthetic NDWI vs. cloud-free ground truth) and downstream segmentation accuracy ($IoU$ / $F1$). |
-| **`other_configs_event_stratified.ipynb`** | Explores structural capacity variations (e.g., `Reg-B0/Seg-B0`, `Reg-B3/Seg-B0`, `Reg-B5/Seg-B0`) and input tile dimensions under the **Event-Stratified** evaluation framework. |
-| **`other_configs_mixed_events.ipynb`** | Explores architectural capacity scaling and tile size comparisons ($128 \times 128$ vs. $256 \times 256$) under the **Mixed-Events** cross-validation scheme. |
-| **`training_models_from_scratch.ipynb`** | Ablation study comparing custom/from-scratch regression backbones against transfer learning-based (ImageNet pretrained) models for the SAR-to-NDWI translation task. |
+| **`event-stratified.ipynb`** | Evaluates core baseline modalities (**S1 Only**, **Syn S2 Only**, and **Combined**) under an **Event-Stratified Cross-Validation** split to test model generalization on unseen geographic flood events. |
+| **`mixed_events.ipynb`** | Evaluates the core baseline modalities (**S1 Only**, **Syn S2 Only**, and **Combined**) under a **Mixed-Events Cross-Validation** framework (random/spatial tile splits across all flood regions). |
+| **`mixed_events_testing_effect_of_R2_score.ipynb`** | Quantitative analysis measuring the correlation between intermediate regression quality ($R^2$ score of synthetic NDWI vs. optical ground truth) and downstream water segmentation performance ($IoU$ / $F1$). |
+| **`other_configs_event_stratified.ipynb`** | Explores alternative input feature configurations—including **PCA-transformed S1 features**, **Synthetic S2**, and **PCA + Raw S1 feature combinations**—under the **Event-Stratified** CV setup. |
+| **`other_configs_mixed_events.ipynb`** | Evaluates alternative input feature configurations (**PCA of S1**, **Synthetic S2**, and **PCA + Raw S1 combinations**) under the **Mixed-Events** CV setup. |
+| **`training_models_from_scratch.ipynb`** | Ablation study comparing custom architectures trained from scratch against pretrained (transfer learning) backbones for the SAR-to-NDWI translation phase. |
 
 ---
 
 ## 🧪 Key Experiments & Workflows
 
 ### 1. Comparative Evaluation (S1 vs. Synthetic NDWI vs. Combined)
-Across the notebooks, three input modalities are evaluated to resolve the translation dilemma:
-* **`S1 Only`**: Directly segments water features from raw, noisy Sentinel-1 radar backscatter.
-* **`Syn S2 Only`**: Segments water features using the synthetic NDWI proxy translated from SAR.
-* **`Combined`**: Our proposed multi-view framework that fuses the sharp structural boundaries of raw SAR with the high contrast of synthetic NDWI.
+Evaluates three primary input strategies for resolving overcast segmentation:
+* **`S1 Only`**: Directly segments water from raw, noisy Sentinel-1 radar backscatter.
+* **`Syn S2 Only`**: Segments water using the synthetic NDWI proxy translated from SAR.
+* **`Combined`**: Fuses the structural boundaries of raw SAR with the high contrast of synthetic NDWI.
 
-### 2. Intermediate $R^2$ vs. Downstream Accuracy Analysis
-Located in `mixed_events_testing_effect_of_R2_score.ipynb`, this experiment establishes that higher SAR-to-NDWI reconstruction quality ($R^2$) strongly correlates with higher downstream segmentation performance, demonstrating that cross-modal translation acts as an effective structural noise filter.
+### 2. Dimensionality Reduction & Feature Engineering (`other_configs_*.ipynb`)
+Investigates advanced input feature combinations across both cross-validation schemes:
+* **PCA of S1**: Applies Principal Component Analysis on SAR channels to compress noise and extract dominant backscatter components.
+* **PCA + Raw S1**: Fuses decomposed principal components with raw SAR signals to test whether explicit feature decorrelation improves downstream segmentation.
+* **Synthetic S2 Formulations**: Compares single-index proxies against multi-channel optical representations.
 
-### 3. Backbone Capacity & Tile Size Ablation
-Explored in `other_configs_*.ipynb`, we systematically vary the regression (`Reg-X`) and segmentation (`Seg-Y`) backbones across $128 \times 128$ and $256 \times 256$ tile resolutions to identify optimal trade-offs between computational overhead and segmentation accuracy.
+### 3. Intermediate $R^2$ vs. Downstream Accuracy Analysis
+Located in `mixed_events_testing_effect_of_R2_score.ipynb`, this experiment proves that higher SAR-to-NDWI translation quality ($R^2$) directly improves downstream segmentation accuracy ($IoU$).
 
-### 4. Transfer Learning vs. Scratch Architectures
-Evaluated in `training_models_from_scratch.ipynb`, demonstrating that fine-tuning pretrained backbones significantly outperforms training models from scratch for SAR-to-optical mapping.
+### 4. Pretrained Backbones vs. From-Scratch Models
+Located in `training_models_from_scratch.ipynb`, demonstrating that fine-tuning ImageNet-pretrained backbones yields superior translation quality compared to training custom architectures from scratch.
 
 ---
 
 ## ⚙️ Environment & Setup
 
-* **Frameworks**: PyTorch, Segmentation Models Pytorch (`smp`), Weights & Biases (`wandb`).
-* **Tracking**: Experiments are logged to **Weights & Biases**. Ensure your `WANDB_API_KEY` is configured via Kaggle User Secrets or environment variables prior to running the notebooks.
+* **Frameworks**: PyTorch, Segmentation Models PyTorch (`smp`), Weights & Biases (`wandb`).
+* **Tracking**: All experiments log directly to **Weights & Biases**. Configure your `WANDB_API_KEY` in environment variables or Kaggle User Secrets before running the notebooks.
